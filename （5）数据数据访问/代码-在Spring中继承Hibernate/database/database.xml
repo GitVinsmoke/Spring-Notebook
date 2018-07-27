@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- 引用Spring的多个Schema空间的格式定义文件 -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	 http://www.springframework.org/schema/beans/spring-beans.xsd
+	 http://www.springframework.org/schema/aop
+	 http://www.springframework.org/schema/aop/spring-aop.xsd
+	 http://www.springframework.org/schema/context
+	 http://www.springframework.org/schema/context/spring-context.xsd
+	 http://www.springframework.org/schema/tx
+	 http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<!-- 开启自动扫描 -->
+	<context:component-scan base-package="com.li.spring.database.persistence"></context:component-scan>
+	<bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor"/>
+
+	<!-- 数据源配置，使用最简单的数据源 -->
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost:3306/learning?useSSL=true" />
+		<property name="username" value="root" />
+		<property name="password" value="123456" />
+	</bean>
+	
+	<!-- 不使用JDBC模板的Hibernate DAO -->
+	<bean id="hibernateDao" class="com.li.spring.database.persistence.HibernateDao">
+	</bean>
+	
+	<bean id="studentService" class="com.li.spring.database.service.StudentService">
+		<property name="dao" ref="hibernateDao"></property>
+	</bean>
+	
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="packagesToScan" value="com.li.spring.database.domain"/>
+		<property name="hibernateProperties">
+    	<props>
+        	<prop key="dialect">org.hibernate.dialect.MySQLDialect</prop>
+            <prop key="hibernate.current_session_context_class">org.springframework.orm.hibernate5.SpringSessionContext</prop>
+        </props>
+    	</property>
+	</bean>
+	
+	<bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<!-- 声明事务管理 -->
+	<tx:advice id="txAdvice">
+		<tx:attributes>
+	    	<tx:method name="add*" propagation="REQUIRED"/>
+	    	<tx:method name="save*" propagation="REQUIRED"/>
+	    	<tx:method name="get*" propagation="REQUIRED"/>
+	        <tx:method name="*" propagation="SUPPORTS" read-only="true"/>
+	    </tx:attributes>
+	</tx:advice>
+
+	<aop:config>
+		<aop:advisor pointcut="execution(* *..StudentService.*(..))" advice-ref="txAdvice"/>
+	</aop:config>
+	
+</beans>
