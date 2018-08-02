@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	 http://www.springframework.org/schema/beans/spring-beans.xsd
+	 http://www.springframework.org/schema/aop
+	 http://www.springframework.org/schema/aop/spring-aop.xsd
+	 http://www.springframework.org/schema/context
+	 http://www.springframework.org/schema/context/spring-context.xsd
+	 http://www.springframework.org/schema/tx
+	 http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<!-- 先引入数据库的配置文件 -->
+	<context:property-placeholder location="classpath:/com/li/student/database.properties"/>
+
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${driver}"></property>
+		<property name="url" value="${url}"></property>
+		<property name="username" value="${user_name}"></property>
+		<property name="password" value="${password}"></property>
+	</bean>
+	
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<constructor-arg ref="dataSource"></constructor-arg>
+	</bean>
+	
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>	
+	
+	<bean id="studentDaoImpl" class="com.li.student.persistence.StudentDaoImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate"></property>
+	</bean>
+	
+	<bean id="studentService" class="com.li.student.service.StudentService">
+		<property name="dao" ref="studentDaoImpl"></property>
+	</bean>
+	
+	<!-- 事务通知的定义 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="add*" propagation="REQUIRED"/>
+			<tx:method name="save*" propagation="REQUIRED"/>
+			<tx:method name="*" propagation="SUPPORTS" read-only="true"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	<aop:config>
+		<!-- 通知器的定义 -->
+		<aop:advisor advice-ref="txAdvice" pointcut="execution(* *..StudentService.*(..))"/>
+	</aop:config>
+	
+</beans>
