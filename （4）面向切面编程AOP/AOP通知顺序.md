@@ -134,6 +134,17 @@ public class Detection {
 		System.out.println("交易失败！");
 	}
 	
+    @Around(value="pointcut()")
+	public void around(ProceedingJoinPoint joinPoint) {
+		System.out.println("环绕通知前");
+		try {
+			/*连接点的执行（Spring中为方法）*/
+			joinPoint.proceed();
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		System.out.println("环绕通知后");
+	}
 }
 
 ```
