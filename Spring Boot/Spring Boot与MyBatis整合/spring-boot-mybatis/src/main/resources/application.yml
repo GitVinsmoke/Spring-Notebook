@@ -1,0 +1,5 @@
+# main configuration file
+
+spring:
+  profiles:
+    active: dev

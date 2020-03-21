@@ -1,0 +1,22 @@
+# 开发环境配置文件
+# yml配置文件中，key和value，value一定要和冒号之间有空格
+
+spring:
+  # 配置数据源
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/test1?useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=UTC
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  # type-aliases-package: com.xavier.springbootmybatis.domain
+
+# show sql
+logging:
+  level:
+    com:
+      xavier:
+        springbootmybatis:
+          dao: debug
